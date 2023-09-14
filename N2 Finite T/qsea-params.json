@@ -1,0 +1,20 @@
+{
+    "N": 1,
+    "T": [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    "m12": 0.014,
+    "m22": 0.014,
+    "lambda1": 0.1775,
+    "lambda2": 0.185,
+    "lambda12": 0.1,
+    "alpha": -0.09,
+    "params":{
+        "kStart": 2,
+        "phi1Steps": 200,
+        "phi2Steps": 20,
+        "phi1Range": [-0.2, 1.5],
+        "phi2Range": [-0.2, 0.2],
+        "logAbsErr": -8,
+        "logRelErr": -6
+    },
+    "outputFileName": "data"
+}
