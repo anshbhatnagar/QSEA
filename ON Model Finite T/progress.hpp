@@ -5,9 +5,10 @@
 
 namespace progress{
     typedef std::chrono::time_point<std::chrono::high_resolution_clock> clock;
+    std::string getColorCode(int percent);
 
     class progBar{
-        const int barLen = 100;
+        const int barLen = 30;
         std::string prevStr;
         double state;
         double min;
@@ -18,7 +19,7 @@ namespace progress{
         void mainLoop();
     public:
         progBar(double min, double max);
-        progBar(int num);
+        progBar(double num);
         void add(double extra);
         std::thread start();
         void finish();

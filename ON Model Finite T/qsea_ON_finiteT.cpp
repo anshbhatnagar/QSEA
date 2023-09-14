@@ -413,7 +413,7 @@ int main(){
 
     vector<QSEA> qseaVector;
 
-    progress::progBar bar(100*6);
+    progress::progBar bar(100*temps.size());
 
     thread progress;
     progress = bar.start();
@@ -424,7 +424,7 @@ int main(){
     }
 
 #pragma omp parallel for shared(bar, qseaVector, temps, params, output)
-    for(int i = 0; i < 6; i++){
+    for(int i = 0; i < temps.size(); i++){
         qseaVector[i].run(i, params, bar, output);
 
     }
