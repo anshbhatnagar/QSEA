@@ -4,22 +4,15 @@ from math import factorial
 import numpy as np
 import matplotlib.pyplot as plt
 from cosmoTransitions import generic_potential
+import json
 
-x=[[],[],[],[],[],[]]
-y=[[],[],[],[],[],[]]
-colors = ['blue', 'green', 'orange', 'red', 'purple']
+def pot(phi, varPhi, mPhi2, alphaPhi, lPhi, mVarPhi2, lVarPhi, lPhiVarPhi):
 
-shift=0
-falling=True
-init=True
+    freePhi4 = mPhi2/2*phi**2+alphaPhi/factorial(3)*phi**3+lPhi/factorial(4)*phi**4
 
-def pot(phi, varPhi, muPhi, alphaPhi, lPhi, muVarPhi, lVarPhi, lPhiVarPhi):
+    freeVarPhi4 = mVarPhi2/2*varPhi**2 + lVarPhi/factorial(4)*varPhi**4
 
-    freePhi4 = -muPhi**2*phi**2+alphaPhi*phi**3+lPhi*phi**4
-
-    freeVarPhi4 = -muVarPhi**2*varPhi**2 + lVarPhi*varPhi**4
-
-    intPhiVarPhi = lPhiVarPhi*phi**2*varPhi**2
+    intPhiVarPhi = lPhiVarPhi/4*phi**2*varPhi**2
 
     return freePhi4+freeVarPhi4+intPhiVarPhi
 
@@ -34,15 +27,8 @@ class model1(generic_potential.generic_potential):
     It has low-temperature, mid-temperature, and high-temperature phases, all
     of which are found from the *getPhases()* function.
     """
-    def init(self, massRatio=1.):
-        """
-          m1 - tree-level mass of first singlet when mu = 0.
-          m2 - tree-level mass of second singlet when mu = 0.
-          mu - mass coefficient for the mixing term.
-          Y1 - Coupling of the extra boson to the two scalars individually
-          Y2 - Coupling to the two scalars together: m^2 = Y2*s1*s2
-          n - degrees of freedom of the boson that is coupling.
-        """
+    def init(self, mPhi2, mVarPhi2, alphaPhi, lPhi, lVarPhi, lPhiVarPhi, kStart):
+        
         # The init method is called by the generic_potential class, after it
         # already does some of its own initialization in the default __init__()
         # method. This is necessary for all subclasses to implement.
@@ -55,24 +41,19 @@ class model1(generic_potential.generic_potential):
         # and the masses. This will obviously need to be changed for different
         # models.
 
-        self.muPhi =np.sqrt(0.14/2)
-        self.lPhi = 0.185/factorial(4)
-        self.alphaPhi = 0/factorial(3)
-        self.muVarPhi = massRatio*self.muPhi
-        self.lVarPhi = 0.185/factorial(4)
-        self.lPhiVarPhi = 0.1/2
+        self.mPhi2 = mPhi2
+        self.lPhi = lPhi
+        self.alphaPhi = alphaPhi
+        self.mVarPhi2 = mVarPhi2
+        self.lVarPhi = lVarPhi
+        self.lPhiVarPhi = lPhiVarPhi
 
         self.Tmax = 2.
 
-        self.yChi = 1.
-
-        self.bPhi = 1.
-
-        self.bVarPhi =1.
 
         # self.renormScaleSq is the renormalization scale used in the
         # Coleman-Weinberg potential.
-        self.renormScaleSq = self.muPhi**2
+        self.renormScaleSq = kStart**2
 
     def forbidPhaseCrit(self, X):
         """
@@ -104,7 +85,7 @@ class model1(generic_potential.generic_potential):
         # and have shape (2,N).)
         phi,varPhi = X[...,0], X[...,1]
 
-        return pot(phi, varPhi, self.muPhi, self.alphaPhi, self.lPhi, self.muVarPhi, self.lVarPhi, self.lPhiVarPhi)
+        return pot(phi, varPhi, self.mPhi2, self.alphaPhi, self.lPhi, self.mVarPhi2, self.lVarPhi, self.lPhiVarPhi)
 
     def boson_massSq(self, X, T):
         X = np.array(X)
@@ -113,8 +94,8 @@ class model1(generic_potential.generic_potential):
         # We need to define the field-dependent boson masses. This is obviously
         # model-dependent.
         # Note that these can also include temperature-dependent corrections.
-        mPhi = -2*self.muPhi**2+12*self.lPhi*phi**2+6*self.alphaPhi*phi+2*self.lPhiVarPhi*varPhi**2
-        mVarPhi = -2*self.muVarPhi**2+12*self.lVarPhi*varPhi**2+2*self.lPhiVarPhi*phi**2
+        mPhi = self.mPhi2+self.lPhi/2*phi**2+self.alphaPhi*phi+self.lPhiVarPhi/2*varPhi**2
+        mVarPhi = self.mVarPhi2+self.lVarPhi/2*varPhi**2+self.lPhiVarPhi/2*phi**2
         M = np.array([mPhi, mVarPhi])
 
         # At this point, we have an array of boson masses, but each entry might
@@ -143,70 +124,94 @@ class model1(generic_potential.generic_potential):
     def approxZeroTMin(self):
         # There are generically two minima at zero temperature in this model,
         # and we want to include both of them.
-        return [np.array([2.1,0]), np.array([-2.1,0])]
-
-plotNames=['qsea.csv','qsea0.csv', 'qsea1.csv', 'qsea2.csv', 'qsea3.csv']
-
-i=0
-
-for fileName in plotNames:
-    with open(fileName,'r') as csvFile:
-        plots = csv.reader(csvFile, delimiter=',')
-        ctr=0
-        for row in plots:
-            if init:
-                shift=float(row[0])
-                init = False
-
-            #if float(row[0])<=shift and falling:
-            #    shift=float(row[0])
-            #else:
-            #    falling=False
-
-            if ctr == 250:
-                shift=float(row[0])
-                falling=False
-            ctr+=1
+        return [np.array([0]), np.array([2])]
 
 
-    with open(fileName,'r') as csvFile:
-        plots = csv.reader(csvFile, delimiter=',')
 
-        for row in plots:
-            x[i].append(float(row[1]))
-            y[i].append(float(row[0])-shift)
+colors = ['blue', 'green', 'orange', 'red', 'purple', 'black']
 
-    i+=1
-    init=True
+with open('data.json', 'r') as f:
+  data = json.load(f)
+
+with open('qsea-params.json', 'r') as f:
+  params = json.load(f)
+
+plots = data['runs']
+phi = data['phi']
+treeLevel = data['treeLevel']
+
+kStart = params['params']['kStart']
+m12 = params['m12']
+m22 = params['m22']
+lambda1 = params['lambda1']
+lambda2 = params['lambda2']
+lambda12 = params['lambda12']
+alpha = params['alpha']
+
+shift=0
+init = True
+falling = True
+
+for run in plots:
+    ctr=0
+    for potVal in run['pot']:
+        if init:
+            shift=float(potVal)
+            init = False
+
+        if float(potVal)<=shift and falling:
+            shift=float(potVal)
+        else:
+            falling=False
+
+        #if ctr == int(0.5*len(run['pot'])):
+        #    shift=float(potVal)
+        ctr+=1
+
+    i = 0
+    for potVal in run['pot']:
+        run['pot'][i] = float(potVal-shift)
+        i+=1
+
+    init = True
     falling = True
     shift =0
 
-with open('pot.csv','r') as csvFile:
-    plots = csv.reader(csvFile, delimiter=',')
+showError = False
 
-    for row in plots:
-        x[i].append(float(row[1]))
-        y[i].append(float(row[0]))
+if not showError:
+    i=0
+    for run in plots:
+        plt.plot(phi,run['pot'], color=colors[i],label=r'$T={0}$'.format(run['T']))
+        i+=1
+
+    plt.plot(phi,treeLevel, label = 'Tree')
 
 
-for i in range(0,5):
-    plt.plot(x[i],y[i], color=colors[i])
+m = model1(m12, m22, alpha, lambda1, lambda2, lambda12, kStart)
+#X = np.array([phi, varPhi], dtype=float).T
 
-plt.plot(x[5],y[5])
-
-m = model1()
-phi = np.linspace(-4,4,500)
 varPhi = np.zeros_like(phi)
 X = np.array([phi,varPhi]).T
 
-for i in range(0,5):
-    plt.plot(X[...,0],m.Vtot(X,2.5*i)-m.Vtot([0,0],2.5*i), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(2.5*i))
+if not showError:
+    plt.plot(X[...,0],m.V0(X), label = 'Tree')
+    i=0
+    for run in plots:
+        T = run['T']
+        plt.plot(X[...,0],m.Vtot(X,T)-m.Vtot(m.findMinimum(X=[0,0],T=T),T), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
+        i+=1
+else:
+    i=0
+    for run in plots:
+        T = run['T']
+        plt.plot(X[...,0],np.log10(np.abs((m.Vtot(X,T)-m.Vtot([0],T)-run['pot'])/run['pot'])), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
+        i+=1
 
 plt.grid(True, which='both')
 
-#plt.xlim([-0.25,1.25])
-#plt.ylim([-0.00025,0.0005])
-plt.xlim([-4,4])
-plt.ylim([-0.2,0.03])
+plt.title(r'$m_1^2={0}$, $\alpha = {1}$, $\lambda_1={2}$,$m_2^2={3}$, $\lambda_2={4}$, $\lambda_12 = {5}$'.format(m.mPhi2, m.alphaPhi, m.lPhi, m.mVarPhi2, m.lVarPhi, m.lPhiVarPhi))
+plt.xlim([0,1.5])
+plt.ylim([-0.0002,0.0004])
 plt.legend(loc='upper right')
 plt.show()

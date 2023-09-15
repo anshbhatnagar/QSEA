@@ -6,7 +6,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include "thread"
-#include "progress.hpp"
+#include "../ProgressBar/progress.hpp"
 
 using namespace std;
 
@@ -109,7 +109,6 @@ class QSEA{
         double prevProg = 0;
         double m2 = -0.014;
         double lambda = 0.185;
-        double alpha = 0;
         const double pi = 3.14159265358979323846;
 
         double phiRange[2] = {-15, 15};
@@ -177,7 +176,7 @@ class QSEA{
         }
 
         double initV(double phi){
-            return m2/2*phi*phi+alpha*pow(phi,3)/6+lambda*pow(phi,4)/24;
+            return m2/2*phi*phi+lambda*pow(phi,4)/24;
         }
 
         void nanerror(double quant, string message){
@@ -194,7 +193,7 @@ class QSEA{
         }
 
         double uk(double k, double phi, double upp){
-            double kt2 = k*k-m2-alpha*phi-lambda*phi*phi/2;
+            double kt2 = k*k-m2-lambda*phi*phi/2;
             double Et2 = kt2+upp;
 
             double deriv;
@@ -433,11 +432,13 @@ int main(){
     progress.join();
 
 
-    ofstream outFile(outputFileName+".json");
+    ofstream outFile("/Plotting/"+outputFileName+".json");
 
     outFile << setw(4) << output << endl;
 
     outFile.close();
+
+    cout<<endl;
 
     return 0;
 }

@@ -4,7 +4,7 @@ from math import factorial
 import numpy as np
 import matplotlib.pyplot as plt
 from cosmoTransitions import generic_potential
-
+import json
 
 def pot(phi, mPhi2, alphaPhi, lPhi):
 
@@ -23,7 +23,7 @@ class model1(generic_potential.generic_potential):
     It has low-temperature, mid-temperature, and high-temperature phases, all
     of which are found from the *getPhases()* function.
     """
-    def init(self, massRatio=1.):
+    def init(self, vev, gamma, kStart):
         """
           m1 - tree-level mass of first singlet when mu = 0.
           m2 - tree-level mass of second singlet when mu = 0.
@@ -43,17 +43,20 @@ class model1(generic_potential.generic_potential):
         # This next block sets all of the parameters that go into the potential
         # and the masses. This will obviously need to be changed for different
         # models.
+        
+        self.v = vev
+        sf = gamma
+        self.mPhi2 = -2*sf**4/self.v**2
+        self.lPhi = 12*(sf/self.v)**4
 
-        self.mPhi2 = 0.014
-        self.lPhi = 0.185
-        self.alphaPhi = -0.09
+        self.alphaPhi = 0
 
         self.Tmax = 10.
 
 
         # self.renormScaleSq is the renormalization scale used in the
         # Coleman-Weinberg potential.
-        self.renormScaleSq = (2)**2
+        self.renormScaleSq = kStart**2
 
     def forbidPhaseCrit(self, X):
         """
@@ -123,72 +126,74 @@ class model1(generic_potential.generic_potential):
     def approxZeroTMin(self):
         # There are generically two minima at zero temperature in this model,
         # and we want to include both of them.
-        return [np.array([1,0]), np.array([0])]
-
-x=[[],[]]
-y=[[],[]]
+        return [np.array([self.v]), np.array([-self.v])]
 
 
-fileNames = ['QSEA.csv']
 
-lowPhi = 0
+colors = ['blue', 'green', 'orange', 'red', 'purple', 'black']
 
-i=0
-for fileName in fileNames:
-    shift=0
-    falling=True
-    init=True
-    with open(fileName,'r') as csvFile:
-        plots = csv.reader(csvFile, delimiter=',')
+with open('data.json', 'r') as f:
+  data = json.load(f)
 
-        for row in plots:
-            if init:
-                shift=float(row[0])
-                init = False
+with open('qsea-params.json', 'r') as f:
+  params = json.load(f)
 
-            if float(row[0])<=shift and falling:
-                shift=float(row[0])
-                lowPhi = float(row[1])
-            else:
-                falling=False
-        
-    #if fileName=='frg.csv':
-    #    shift=0
+plots = data['runs']
+phi = data['phi']
+treeLevel = data['treeLevel']
 
-    with open(fileName,'r') as csvFile:
-        plots = csv.reader(csvFile, delimiter=',')
+Gamma = params['Gamma']
+vev = params['v']
+kStart = params['params']['kStart']
 
-        for row in plots:
-            x[i].append(float(row[1]))
-            y[i].append(float(row[0])-shift)
-    
-    i+=1
+shift=0
 
-with open('pot.csv','r') as csvFile:
-    plots = csv.reader(csvFile, delimiter=',')
+for run in plots:
+    ctr=0
+    for potVal in run['pot']:
+        if ctr == int(0.5*len(run['pot'])):
+            shift=float(potVal)
+        ctr+=1
 
-    for row in plots:
-        x[i].append(float(row[1]))
-        y[i].append(float(row[0]))
+    i = 0
+    for potVal in run['pot']:
+        run['pot'][i] = float(potVal-shift)
+        i+=1
 
+    shift =0
 
-for i in range(0,2):
-    plt.plot(x[i],y[i])
+showError = False
+
+if not showError:
+    i=0
+    for run in plots:
+        plt.plot(phi,run['pot'], color=colors[i],label=r'$T={0}$'.format(run['T']))
+        i+=1
+
+    plt.plot(phi,treeLevel, label = 'Tree')
 
 
-m = model1()
-phi = np.linspace(-0.25,1.25,500)
+m = model1(vev, Gamma, kStart)
 X = np.array([phi]).T
 
-plt.plot(X[...,0],m.V0(X)-m.V0([0]), linestyle ='dashed', label = 'Tree')
-
-print(lowPhi)
-
-plt.plot(X[...,0],m.Vtot(X,0)-m.Vtot([lowPhi],0), linestyle ='dashed', label='Perturbative')
+if not showError:
+    plt.plot(X[...,0],m.V0(X)-m.V0([0]), label = 'Tree')
+    i=0
+    for run in plots:
+        T = run['T']
+        plt.plot(X[...,0],m.Vtot(X,T)-m.Vtot([0],T), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
+        i+=1
+else:
+    i=0
+    for run in plots:
+        T = run['T']
+        plt.plot(X[...,0],np.log10(np.abs((m.Vtot(X,T)-m.Vtot([0],T)-run['pot'])/run['pot'])), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
+        i+=1
 
 plt.grid(True, which='both')
 
-plt.xlim([-0.25,1.25])
-plt.ylim([-0.0005,0.001])
+plt.title(r'$m^2={0}$, $\lambda={1}$'.format(m.mPhi2, m.lPhi))
+plt.xlim([-2,2])
+plt.ylim([-0.04,0.02])
 plt.legend(loc='upper right')
 plt.show()
