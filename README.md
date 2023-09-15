@@ -66,9 +66,9 @@ V(\phi,\varphi) = \frac{1}{2}\left(m_1^2 \phi^2 + m_2^2 \varphi^2\right) + \frac
 $$
 
 ## Plotting
-The python files _plot_O1.py_ and _plot_O2.py_ plot specificially for the O(1) and O(2) cases, but can be generalised for $N \geq 3$.
+The python files **plot_O1.py** and **plot_O2.py** plot specificially for the $O(1)$ and $O(2)$ cases, but can be generalised for $N \geq 3$.
 
-The file _plot.py_ in the _qsea_N2_finiteT_ plotting folder plots only for the $N=2$ case.
+The file **plot.py** in the **qsea_N2_finiteT** plotting folder plots only for the $N=2$ case.
 
 They require the [cosmoTransitions](https://github.com/clwainwright/CosmoTransitions) package to calculate the perturbative potentials for comparison.
 
