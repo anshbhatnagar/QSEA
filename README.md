@@ -65,6 +65,24 @@ $$
 V(\phi,\varphi) = \frac{1}{2}\left(m_1^2 \phi^2 + m_2^2 \varphi^2\right) + \frac{1}{3!}\alpha \phi^3 + \frac{1}{4!}\left(\lambda_1^2 \phi^2 + \lambda_2^2 \varphi^2\right) + \frac{1}{4} \phi^2 \varphi^2
 $$
 
+## Results
+Result are outputted as follows:
+
+```json
+{
+    "phi": [], #list of phi (i.e. x axis)
+    "runs": [ #can be a list of any length
+        {
+            "T": 0.0, #each run has a defined temperature
+            "pot": [] #and a list for the potential at that temperature (i.e. y axis)
+        }
+    ],
+    "treeLevel": [] #list of the tree level potential (i.e. y axis)
+}
+```
+
+The results save the data for the potential V(\phi, \varphi = 0) for the multiple fields case.
+
 ## Plotting
 The python files **plot_O1.py** and **plot_O2.py** plot specificially for the $O(1)$ and $O(2)$ cases, but can be generalised for $N \geq 3$.
 
