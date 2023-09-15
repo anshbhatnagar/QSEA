@@ -1,11 +1,11 @@
 # QSEA
 
-There are two programs, _qsea_ON_finiteT_ for the $O(N)$ symmetric model at finite temperature, and qsea_N2_finiteT for a $N=2$ model with two fields.
+There are two programs, **qsea_ON_finiteT** for the $O(N)$ symmetric model at finite temperature, and **qsea_N2_finiteT** for a $N=2$ model with two fields.
 
 The programs calculate the potential using QSEA for different temperatures, and is multithreaded.
 
 ## How to run
-For both, edit the _qsea-params.json_ file to change the parameters of the run.
+For both, edit the **qsea-params.json** file to change the parameters of the run.
 
 ### O(N) symmetric model
 An example of a valid parameter file is:
