@@ -172,12 +172,12 @@ class QSEA{
         const double pi = 3.14159265358979323846;
 
         double phi1Range[2] = {-0.2,1.5};
-        double phi2Range[2] = {-0.2,0.2};
+        double phi2Range[2] = {-1,1};
         double kStart=2;
 
         int phi1Steps = 100;
-        int phi2Steps = 20;
-        int kSteps = 1000;
+        int phi2Steps = 100;
+        int kSteps = 2000;
 
         double T = 0;
 
@@ -479,8 +479,10 @@ class QSEA{
 
             for(int a=0;a<N;a++){
                 if(zeroTemp){
+                    //(1.-2./(1.+sqrt(1+V4[a][a]/(16*pi*pi))))*
                     deriv += k/(32*pi*pi)*pow(kt2[a],2)*heaviside(kt2[a])*real(Gk[a]);
                 }else{
+                    //(1.-2./(1.+sqrt(1+V4[a][a]/(16*pi*pi))))*
                     deriv += k*T/(6*pi*pi)*matsubaraSum(kt2[a])*heaviside(kt2[a])*real(Gk[a]);
                 }
             }
@@ -824,7 +826,7 @@ int main(){
     progress.join();
 
 
-    ofstream outFile("/Plotting/"+outputFileName+".json");
+    ofstream outFile("Plotting/"+outputFileName+".json");
 
     outFile << setw(4) << output << endl;
 

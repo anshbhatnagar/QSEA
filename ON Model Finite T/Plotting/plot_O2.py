@@ -46,6 +46,9 @@ class model1(generic_potential.generic_potential):
         self.mPhi2 = -2*sf**4/self.v**2
         self.lPhi = 12*(sf/self.v)**4
 
+        self.alphaPhi = 0
+        self.lPhiVarPhi = 0
+
         self.mVarPhi2 = self.mPhi2
         self.lVarPhi = self.lPhi
 

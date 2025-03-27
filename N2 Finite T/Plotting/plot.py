@@ -53,7 +53,7 @@ class model1(generic_potential.generic_potential):
 
         # self.renormScaleSq is the renormalization scale used in the
         # Coleman-Weinberg potential.
-        self.renormScaleSq = kStart**2
+        self.renormScaleSq = (kStart)**2
 
     def forbidPhaseCrit(self, X):
         """
@@ -133,7 +133,7 @@ colors = ['blue', 'green', 'orange', 'red', 'purple', 'black']
 with open('data.json', 'r') as f:
   data = json.load(f)
 
-with open('qsea-params.json', 'r') as f:
+with open('../qsea-params.json', 'r') as f:
   params = json.load(f)
 
 plots = data['runs']
@@ -194,24 +194,74 @@ m = model1(m12, m22, alpha, lambda1, lambda2, lambda12, kStart)
 varPhi = np.zeros_like(phi)
 X = np.array([phi,varPhi]).T
 
+
+###
+
+adjPots = []
+
+#this block is to adjust the QSEA 1-loop + perturbative finite temp result so that the first minimum is at y = 0
+for run in plots:
+    ctr=0
+    T = run['T']
+    adjV = m.Vtot(X,T) - m.V1(m.boson_massSq(X,T), m.fermion_massSq(X)) - m.V0(X) + plots[0]['pot']
+    for potVal in adjV:
+        if init:
+            shift=float(potVal)
+            init = False
+
+        if float(potVal)<=shift and falling:
+            shift=float(potVal)
+        else:
+            falling=False
+
+        #if ctr == int(0.5*len(run['pot'])):
+        #    shift=float(potVal)
+        ctr+=1
+
+    i = 0
+    for potVal in adjV:
+        adjV[i] = float(potVal-shift)
+        i+=1
+
+    init = True
+    falling = True
+    shift =0
+
+    adjPots.append(adjV)
+
+
+###
+
 if not showError:
     plt.plot(X[...,0],m.V0(X), label = 'Tree')
+    plt.ylabel(r'$V(\phi)$')
     i=0
     for run in plots:
         T = run['T']
+        #below line is vtot using the 1-loop of cosmotransitions
+
+
         plt.plot(X[...,0],m.Vtot(X,T)-m.Vtot(m.findMinimum(X=[0,0],T=T),T), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
+
+        #below line uses the 1-loop from QSEA combined with perturbative finite temperature difference
+        #plt.plot(X[...,0],adjPots[i], linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
         i+=1
+        
 else:
     i=0
+
     for run in plots:
         T = run['T']
-        plt.plot(X[...,0],np.log10(np.abs((m.Vtot(X,T)-m.Vtot([0],T)-run['pot'])/run['pot'])), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
+        plt.plot(X[...,0],np.log10(np.abs(((m.Vtot(X,T)-m.Vtot([0,0],T))-run['pot'])/(m12))), linestyle ='dashed', color = colors[i], label=r'$T={0}$'.format(T))
         i+=1
-
+    plt.ylabel(r'$\log_{10}((V(\phi)_{1-loop}- V(\phi)_{QSEA})/m_1^2)$')
+ 
 plt.grid(True, which='both')
 
-plt.title(r'$m_1^2={0}$, $\alpha = {1}$, $\lambda_1={2}$,$m_2^2={3}$, $\lambda_2={4}$, $\lambda_12 = {5}$'.format(m.mPhi2, m.alphaPhi, m.lPhi, m.mVarPhi2, m.lVarPhi, m.lPhiVarPhi))
+plt.title(r'$m_1^2={0}$, $\alpha = {1}$, $\lambda_1={2}$,$m_2^2={3}$, $\lambda_2={4}$, $\lambda_{{12}} = {5}$'.format(m.mPhi2, m.alphaPhi, m.lPhi, m.mVarPhi2, m.lVarPhi, m.lPhiVarPhi))
 plt.xlim([0,1.5])
 plt.ylim([-0.0002,0.0004])
+plt.xlabel(r'$\phi$')
+
 plt.legend(loc='upper right')
 plt.show()

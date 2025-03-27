@@ -9,12 +9,12 @@
     "alpha": -0.09,
     "params":{
         "kStart": 2,
-        "phi1Steps": 1000,
-        "phi2Steps": 100,
-        "phi1Range": [-15, 15],
-        "phi2Range": [-10, 10],
-        "logAbsErr": -7,
-        "logRelErr": -6
+        "phi1Steps": 800,
+        "phi2Steps": 800,
+        "phi1Range": [-5, 5],
+        "phi2Range": [-5, 5],
+        "logAbsErr": -5,
+        "logRelErr": -4
     },
     "outputFileName": "data"
 }
